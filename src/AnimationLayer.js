@@ -84,13 +84,12 @@ var AnimationLayer = cc.Layer.extend({
     },
     
     onFire: function () {
-        var bullet = new cc.Sprite(res.bullet_png);
-        this.addChild(bullet);
+        var bullet = new Missile(res.bullet_png);
         bullet.setPosition(cc.p(this.playerSprite.getPositionX(), this.playerSprite.getPositionY()
             + this.playerSprite.getContentSize().height/2 * scaleFactor + 5));
         bullet.setScale(scaleFactor);
-        var move = new cc.MoveTo(3, cc.p(bullet.getPositionX(), this.winSize.height + 20));
-        bullet.runAction(new cc.Sequence(move, new cc.RemoveSelf()));
+        this.addChild(bullet);
+        bullet.initData('player', this.winSize.height);
     },
 
     update: function (dt) {
@@ -135,7 +134,7 @@ var AnimationLayer = cc.Layer.extend({
             // Green starts in column 6 and is only one row.
             startingX = t * this.cellSize;
             startingY = this.greenStartRow * this.cellSize;
-            enemy = new app.GreenEnemy(new app.Point(startingX, startingY));
+            enemy = new GreenEnemy(new app.Point(startingX, startingY));
             enemy.setRow(3);
             enemy.setColumn(t);
             // All GreenEnemies are in Group 3, they need to be added to the array in all even locations.
