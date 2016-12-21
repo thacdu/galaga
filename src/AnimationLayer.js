@@ -1,5 +1,6 @@
 var AnimationLayer = cc.Layer.extend({
     playerSprite : null,
+    isDead: false,
     isFire: false,
     winSize: null,
     timer: 0,
@@ -26,6 +27,8 @@ var AnimationLayer = cc.Layer.extend({
         this.playerSprite.setPosition(cc.p(this.winSize.width / 2, 100));
         this.playerSprite.setScale(scaleFactor);
         this.addChild(this.playerSprite);
+
+        this.initEnemies();
 
         var that = this;
         if (cc.sys.capabilities.hasOwnProperty("keyboard")) {
@@ -60,9 +63,12 @@ var AnimationLayer = cc.Layer.extend({
         }, this);
 
         this.mousePos = this.playerSprite.getPosition();
+
         cc.eventManager.addListener({
             event: cc.EventListener.MOUSE,
             onMouseMove: function (event) {
+                if (this.isDead)
+                    return;
                 that.mousePos = event.getLocation();
                 if (that.playerSprite.getPositionX() < that.mousePos.x) {
                     that.vec = 1;
@@ -93,6 +99,8 @@ var AnimationLayer = cc.Layer.extend({
     },
 
     update: function (dt) {
+        if (this.isDead == true)
+            return;
         var position = this.playerSprite.getPosition();
         position.x += this.speed * this.vec * dt;
         if (this.vec < 0) {
@@ -118,86 +126,45 @@ var AnimationLayer = cc.Layer.extend({
         }
     },
 
-    createEnemies: function () {
-        var startingX = 0;
-        var startingY = 0;
-        var enemy;
-        var g1Location = 0;
-        var g2Location = 0;
-        var g3Location = 0;
-        var g4Location = 0;
-        var g5Location = 0;
-        var g6Location = 0;
-
+    initEnemies: function () {
         this.enemies = Array();
-        for (var t = 6; t <= 9; t++) {
-            // Green starts in column 6 and is only one row.
-            startingX = t * this.cellSize;
-            startingY = this.greenStartRow * this.cellSize;
-            enemy = new GreenEnemy(new app.Point(startingX, startingY));
-            enemy.setRow(3);
-            enemy.setColumn(t);
-            // All GreenEnemies are in Group 3, they need to be added to the array in all even locations.
-            enemy.group = 3;
-            this.group[3][g3Location] = enemy;
-            this.enemies.push(enemy);
-            g3Location += 2;
+        var temp = new GreenEnemy(res.greenEnemy_png);
+        var n = temp.getContentSize().width * scaleFactor / 3;
+
+        for (var i = -3; i <= 3; i++) {
+            var sp = new GreenEnemy(res.greenEnemy_png);
+            this.addChild(sp);
+            this.enemies.push(sp);
+            sp.setScale(scaleFactor);
+            sp.setPosition(cc.p(this.winSize.width / 2 + n * 3 * i, this.winSize.height * 0.8));
         }
+    },
 
-        g3Location = 1;  // For red enemies in group 2 they go in the odd slots.
-        for (var row = 4; row <= 5; row++) {
-            // Red Blue starts in column 2 and are located in rows 2 and 3.
-            for (var j = 4; j <= 11; j++) {
-                startingX = j * this.cellSize;
-                startingY = row * this.cellSize;
-                enemy = new app.Enemy(new app.Point(startingX, startingY), 'redblue');
-                enemy.setRow(row);
-                enemy.setColumn(j);
-                if (j === 6 || j === 9) {
-                    enemy.group = 3;
-                    this.group[3][g3Location] = enemy;
-                    g3Location += 2;
-                }
-                else if (j === 7 || j === 8) {
-                    enemy.group = 1;
-                    this.group[1][g1Location] = enemy;
-                    g1Location += 1;
-                }
-                else if (j === 4 || j === 5 || j === 10 || j === 11) {
-                    enemy.group = 4;
-                    this.group[4][g4Location] = enemy;
-                    g4Location += 1;
-                }
-                this.enemies.push(enemy);
-            }
-        }
+    bezier: function () {
+        // just for test
+        var moveTo = new cc.MoveTo(2, cc.p(20, 20));
+        var bezier = [cc.p(20, 100), cc.p(200, 100), cc.p(200, 20)];
+        var bezierTo = new cc.BezierTo(2, bezier);
+        that.playerSprite.runAction(new cc.Sequence(moveTo, bezierTo));
+    },
 
-        for (var k = 6; k <= 7; k++) {
-            // Blue Yellow starts in column 1 and are located in rows 4 and 5.
+    getEnemies: function () {
+        return this.enemies;
+    },
 
-            for (var n = 3; n <= 12; n++) {
-                startingX = n * this.cellSize;
-                startingY = k * this.cellSize;
-                enemy = new app.Enemy(new app.Point(startingX, startingY), 'blueyellow');
-                enemy.setRow(k);
-                enemy.setColumn(n);
-                if (n === 7 || n === 8) {
-                    enemy.group = 2;
-                    this.group[2][g2Location] = enemy;
-                    g2Location += 1;
-                }
-                else if (n === 5 || n === 6 || n === 9 || n === 10) {
-                    enemy.group = 5;
-                    this.group[5][g5Location] = enemy;
-                    g5Location += 1;
-                }
-                else if (n === 3 || n === 4 || n == 11 || n === 12) {
-                    enemy.group = 6;
-                    this.group[6][g6Location] = enemy;
-                    g6Location += 1;
-                }
-                this.enemies.push(enemy);
-            }
+    getPlayer: function () {
+        return this.playerSprite;
+    },
+    
+    loseLife: function () {
+        this.isDead = true;
+        this.vec = 0;
+        if (statusLayer.life == 1) {
+            statusLayer.showGameOver();
+        } else {
+            statusLayer.lossLife();
+            this.playerSprite.setPositionX(this.winSize.width/2);
+            this.isDead = false;
         }
     }
 });

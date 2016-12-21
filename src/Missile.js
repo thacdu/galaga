@@ -4,7 +4,6 @@
 
 var Missile = cc.Sprite.extend({
     vec: 0,
-    maxY: 0,
 
     ctor: function (file) {
         this._super(file);
@@ -13,22 +12,45 @@ var Missile = cc.Sprite.extend({
     initData: function (owner, maxY) {
         this.owner = owner;
         this.maxY = maxY;
-        if (owner === 'player') {
-            vec = 1;
+        if (this.owner === 'player') {
+            this.vec = 1;
         } else {
-            vec = -1;
+            this.vec = -1;
         }
         this.scheduleUpdate();
     },
 
     update: function (dt) {
-        var posY = this.getPositionY() + MISSILE_SPEED * vec * dt;
+        var posY = this.getPositionY() + MISSILE_SPEED * this.vec * dt;
         this.setPositionY(posY);
         if (posY < 0 || posY > this.maxY) {
-            cc.log(this._position);
-            cc.log(this.maxY);
             this.unscheduleUpdate();
             this.runAction(new cc.RemoveSelf());
+        } else {
+            if (this.owner === 'player') {
+                enemies = animationLayer.getEnemies();
+                for (var i = 0; i < enemies.length; i++) {
+                    var enemy = enemies[i];
+                    if (enemy.isDead)
+                        continue;
+                    if (cc.rectIntersectsRect(enemy.getBoundingBox(), this.getBoundingBox())) {
+                        this.destroy();
+                        enemy.destroy();
+                        statusLayer.removeEnemy();
+                    }
+                }
+            } else {
+                player = animationLayer.getPlayer();
+                if (cc.rectIntersectsRect(player.getBoundingBox(), this.getBoundingBox())) {
+                    this.destroy();
+                    animationLayer.loseLife();
+                }
+            }
         }
+    },
+
+    destroy: function () {
+        this.unscheduleUpdate();
+        this.removeFromParent();
     }
 });

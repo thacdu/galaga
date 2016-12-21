@@ -3,10 +3,12 @@ var StatusLayer = cc.Layer.extend({
     labelScore : null,
     labelTextHighScore : null,
     labelHighScore : null,
+    labelGameOver: null,
     score : 0,
     hightScore : 0,
     life : 3,
     lifeSprite: null,
+    numberEnemies: 0,
 
     ctor: function () {
         this._super();
@@ -36,7 +38,13 @@ var StatusLayer = cc.Layer.extend({
         this.labelHighScore.setPosition(cc.p(winSize.width/2, this.labelScore.getPositionY()));
         this.addChild(this.labelHighScore);
 
-        this.lifeSprite = new Array();
+        this.labelGameOver = new cc.LabelTTF("GAME OVER", "Helvetica", 50);
+        this.addChild(this.labelGameOver);
+        this.labelGameOver.setPosition(cc.p(winSize.width/2, winSize.height/2));
+        this.labelGameOver.setColor(cc.color.WHITE);
+        this.labelGameOver.setVisible(false);
+
+        this.lifeSprite = Array();
         for (var i = 1; i < this.life; i++) {
             var sprt = new cc.Sprite(res.player_png);
             sprt.setScale(scaleFactor);
@@ -48,10 +56,23 @@ var StatusLayer = cc.Layer.extend({
             this.addChild(sprt);
             this.lifeSprite.push(sprt);
         }
+
+        this.numberEnemies = animationLayer.enemies.length;
     },
 
     lossLife: function () {
         this.life--;
-        this.lifeSprite[this.life].setVisible(false);
+        this.lifeSprite[this.life-1].setVisible(false);
+    },
+
+    showGameOver: function () {
+        this.labelGameOver.setVisible(true);
+    },
+
+    removeEnemy: function () {
+        this.numberEnemies--;
+        if (this.numberEnemies == 0) {
+            this.showGameOver();
+        }
     }
 });
