@@ -35,8 +35,7 @@ var Missile = cc.Sprite.extend({
                         continue;
                     if (cc.rectIntersectsRect(enemy.getBoundingBox(), this.getBoundingBox())) {
                         this.destroy();
-                        enemy.destroy();
-                        statusLayer.removeEnemy();
+                        enemy.hitMissile();
                     }
                 }
             } else {

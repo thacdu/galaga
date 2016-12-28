@@ -20,6 +20,7 @@
         "src/StatusLayer.js",
         "src/globals.js",
         "src/Missile.js",
-        "src/GreenEnemy.js"
+        "src/GreenEnemy.js",
+        "src/OneHitEnemy.js"
     ]
 }

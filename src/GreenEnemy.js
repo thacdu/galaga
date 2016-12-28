@@ -4,10 +4,9 @@
 
 var GreenEnemy = cc.Sprite.extend({
     isDead: false,
-    shotTimer: 0,
-    timeToShot: 0,
     winSize: null,
     vec: 1,
+    life: 0,
 
     ctor: function (file) {
         this._super(file);
@@ -17,15 +16,12 @@ var GreenEnemy = cc.Sprite.extend({
     init: function () {
         vec = 1;
         this.isDead = false;
-        this.shotTimer = 0;
-        this.timeToShot = Math.random() % 8 + 2;
         this.winSize = cc.director.getWinSize();
+        this.life = 2;
         this.scheduleUpdate();
     },
 
     update: function (dt) {
-        this.shotTimer += dt;
-
         var position = this.getPosition();
         position.x += MOVE_SPEED * vec * dt;
         if (vec < 0) {
@@ -38,12 +34,6 @@ var GreenEnemy = cc.Sprite.extend({
             }
         }
         this.setPosition(position);
-
-        if (this.shotTimer > this.timeToShot) {
-            this.shotTimer = 0;
-            this.timeToShot = Math.random() % 8 + 2;
-            this.onFire();
-        }
     },
 
     onFire: function () {
@@ -53,6 +43,24 @@ var GreenEnemy = cc.Sprite.extend({
         bullet.setScale(scaleFactor);
         animationLayer.addChild(bullet);
         bullet.initData('enemy', this.winSize.height);
+    },
+
+    updateColor: function () {
+        switch (this.life) {
+            case 1:
+                this.setTexture(res.blueEnemy_png);
+                break;
+        }
+    },
+
+    hitMissile: function () {
+        this.life--;
+        if (this.life == 0) {
+            this.destroy();
+            statusLayer.removeEnemy();
+        } else {
+            this.updateColor();
+        }
     },
 
     destroy: function () {
