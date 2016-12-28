@@ -21,6 +21,7 @@
         "src/globals.js",
         "src/Missile.js",
         "src/GreenEnemy.js",
-        "src/OneHitEnemy.js"
+        "src/OneHitEnemy.js",
+        "src/EnemyLayer.js"
     ]
 }

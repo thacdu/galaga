@@ -28,18 +28,22 @@ var Missile = cc.Sprite.extend({
             this.runAction(new cc.RemoveSelf());
         } else {
             if (this.owner === 'player') {
-                enemies = animationLayer.getEnemies();
+                var enemies = enemyLayer.enemies;
                 for (var i = 0; i < enemies.length; i++) {
                     var enemy = enemies[i];
-                    if (enemy.isDead)
+                    if (enemy.state === STATE_DEAD)
                         continue;
-                    if (cc.rectIntersectsRect(enemy.getBoundingBox(), this.getBoundingBox())) {
+                    var bb = enemy.getBoundingBox();
+                    var p = enemyLayer.convertToWorldSpace(cc.p(bb.x, bb.y));
+                    bb.x = p.x;
+                    bb.y = p.y;
+                    if (cc.rectIntersectsRect(bb, this.getBoundingBox())) {
                         this.destroy();
                         enemy.hitMissile();
                     }
                 }
             } else {
-                player = animationLayer.getPlayer();
+                var player = animationLayer.getPlayer();
                 if (cc.rectIntersectsRect(player.getBoundingBox(), this.getBoundingBox())) {
                     this.destroy();
                     animationLayer.loseLife();

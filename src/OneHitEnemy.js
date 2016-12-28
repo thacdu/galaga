@@ -1,9 +1,8 @@
 
 var OneHitEnemy = cc.Sprite.extend({
-    isDead: false,
     winSize: null,
-    vec: 1,
-    isFlying: false,
+    state: null,
+    pos: null,
 
     ctor: function (file) {
         this._super(file);
@@ -11,35 +10,31 @@ var OneHitEnemy = cc.Sprite.extend({
     },
 
     init: function () {
-        vec = 1;
         this.isDead = false;
         this.winSize = cc.director.getWinSize();
-        this.isFlying = false;
+        this.state = STATE_NORMAL;
         this.scheduleUpdate();
     },
 
     update: function (dt) {
-        if (this.isFlying)
-            return;
-        var position = this.getPosition();
-        position.x += MOVE_SPEED * vec * dt;
-        if (vec < 0) {
-            if (position.x < 20) {
-                vec = 1;
+        var p = enemyLayer.convertToWorldSpace(this.pos);
+
+        if (enemyLayer.vec < 0) {
+            if (p.x < 20) {
+                enemyLayer.vec = 1;
             }
         } else {
-            if (position.x > this.winSize.width - 20) {
-                vec = -1;
+            if (p.x > this.winSize.width - 20) {
+                enemyLayer.vec = -1;
             }
         }
-        this.setPosition(position);
     },
 
     onFire: function () {
-        this.bezier();
+        this.fireFly();
         var bullet = new Missile(res.bullet_png);
-        bullet.setPosition(cc.p(this.getPositionX(), this.getPositionY()
-            + this.getContentSize().height/2 * scaleFactor - 5));
+        var p = enemyLayer.convertToWorldSpace(this.getPosition());
+        bullet.setPosition(cc.p(p.x, p.y + this.getContentSize().height/2 * scaleFactor - 5));
         bullet.setScale(scaleFactor);
         animationLayer.addChild(bullet);
         bullet.initData('enemy', this.winSize.height);
@@ -51,39 +46,31 @@ var OneHitEnemy = cc.Sprite.extend({
     },
 
     destroy: function () {
-        this.isDead = true;
+        this.state = STATE_DEAD;
+        this.stopAllActions();
         this.unscheduleUpdate();
         this.removeFromParent();
     },
 
-    bezier: function () {
-        this.isFlying = true;
-        /*
-        var bezier = [this.getPosition(), cc.p(this.getPositionX() - 200, this.getPositionY() - 100), cc.p(this.getPositionX(), this.getPositionY() - 200)];
-        var bezierTo = new cc.BezierTo(1, bezier);
-        //var bezierBack = new cc.BezierTo(1, [cc.p(this.getPositionX(), this.getPositionY() - 200), cc.p(this.getPositionX() + 200, this.getPositionY() - 100), this.getPosition()]);
-        //this.runAction(cc.sequence(bezierTo, cc.callFunc(this.halFly(), this)));
-        this.runAction(cc.sequence(bezierTo));*/
+    fireFly: function () {
+        this.state = STATE_FLYING;
 
          var array = [
              cc.p(0, 0),
-             cc.p(-100, -100),
-             cc.p(0, -200),
-             cc.p(100, -100),
+             cc.p(-60, -100),
+             cc.p(-30, -200),
+             cc.p(30, -200),
+             cc.p(60, -100),
              cc.p(0, 0)
          ];
 
         var action1 = cc.cardinalSplineBy(2.0, array, 0);
-        var seq = cc.sequence(action1, cc.callFunc(this.halFly, this));
+        var seq = cc.sequence(action1, cc.callFunc(this.finishFly, this));
         this.runAction(seq);
     },
 
-    halFly: function () {
-        cc.log("hihi");
-        this.isFlying = false;
-    },
-
     finishFly: function() {
-
+        if (this.state !== STATE_DEAD)
+            this.state = STATE_NORMAL;
     }
 });

@@ -57,7 +57,7 @@ var StatusLayer = cc.Layer.extend({
             this.lifeSprite.push(sprt);
         }
 
-        this.numberEnemies = animationLayer.enemies.length;
+        this.numberEnemies = enemyLayer.enemies.length;
     },
 
     lossLife: function () {

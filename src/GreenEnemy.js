@@ -3,10 +3,10 @@
  */
 
 var GreenEnemy = cc.Sprite.extend({
-    isDead: false,
     winSize: null,
-    vec: 1,
     life: 0,
+    pos: null,
+    state: null,
 
     ctor: function (file) {
         this._super(file);
@@ -14,35 +14,56 @@ var GreenEnemy = cc.Sprite.extend({
     },
 
     init: function () {
-        vec = 1;
-        this.isDead = false;
+        this.state = STATE_NORMAL;
         this.winSize = cc.director.getWinSize();
         this.life = 2;
         this.scheduleUpdate();
     },
 
     update: function (dt) {
-        var position = this.getPosition();
-        position.x += MOVE_SPEED * vec * dt;
-        if (vec < 0) {
-            if (position.x < 20) {
-                vec = 1;
+        var p = enemyLayer.convertToWorldSpace(this.pos);
+
+        if (enemyLayer.vec < 0) {
+            if (p.x < 20) {
+                enemyLayer.vec = 1;
             }
         } else {
-            if (position.x > this.winSize.width - 20) {
-                vec = -1;
+            if (p.x > this.winSize.width - 20) {
+                enemyLayer.vec = -1;
             }
         }
-        this.setPosition(position);
     },
 
     onFire: function () {
+        this.fireFly();
         var bullet = new Missile(res.bullet_png);
-        bullet.setPosition(cc.p(this.getPositionX(), this.getPositionY()
-            + this.getContentSize().height/2 * scaleFactor - 5));
+        var p = enemyLayer.convertToWorldSpace(this.getPosition());
+        bullet.setPosition(cc.p(p.x, p.y + this.getContentSize().height/2 * scaleFactor - 5));
         bullet.setScale(scaleFactor);
         animationLayer.addChild(bullet);
         bullet.initData('enemy', this.winSize.height);
+    },
+
+    fireFly: function () {
+        this.state = STATE_FLYING;
+
+        var array = [
+            cc.p(0, 0),
+            cc.p(-60, -100),
+            cc.p(-30, -200),
+            cc.p(30, -200),
+            cc.p(60, -100),
+            cc.p(0, 0)
+        ];
+
+        var action1 = cc.cardinalSplineBy(2.0, array, 0);
+        var seq = cc.sequence(action1, cc.callFunc(this.finishFly, this));
+        this.runAction(seq);
+    },
+
+    finishFly: function() {
+        if (this.state !== STATE_DEAD)
+            this.state = STATE_NORMAL;
     },
 
     updateColor: function () {
@@ -64,7 +85,7 @@ var GreenEnemy = cc.Sprite.extend({
     },
 
     destroy: function () {
-        this.isDead = true;
+        this.state = STATE_DEAD;
         this.unscheduleUpdate();
         this.removeFromParent();
     }
