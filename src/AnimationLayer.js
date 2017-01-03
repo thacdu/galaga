@@ -43,6 +43,8 @@ var AnimationLayer = cc.Layer.extend({
             }, this);
         }
 
+        this.mousePos = this.playerSprite.getPosition();
+
         cc.eventManager.addListener({
             event: cc.EventListener.TOUCH_ONE_BY_ONE,
             onTouchBegan: function (touch, event) {
@@ -52,27 +54,37 @@ var AnimationLayer = cc.Layer.extend({
                 return true;
             },
 
-            onTouchEnded: function (touch, event) {
-                that.isFire = false;
-            }
-        }, this);
-
-        this.mousePos = this.playerSprite.getPosition();
-
-        cc.eventManager.addListener({
-            event: cc.EventListener.MOUSE,
-            onMouseMove: function (event) {
+            onTouchMoved: function (touch, event) {
                 if (this.isDead)
                     return;
-                that.mousePos = event.getLocation();
+                that.mousePos = touch.getLocation();
                 if (that.playerSprite.getPositionX() < that.mousePos.x) {
                     that.vec = 1;
                 } else {
                     that.vec = -1;
                 }
+            },
+
+            onTouchEnded: function (touch, event) {
+                that.isFire = false;
             }
         }, this);
 
+        if (cc.sys.os == cc.sys.OS_WINDOWS) {
+            cc.eventManager.addListener({
+                event: cc.EventListener.MOUSE,
+                onMouseMove: function (event) {
+                    if (this.isDead)
+                        return;
+                    that.mousePos = event.getLocation();
+                    if (that.playerSprite.getPositionX() < that.mousePos.x) {
+                        that.vec = 1;
+                    } else {
+                        that.vec = -1;
+                    }
+                }
+            }, this);
+        }
         this.scheduleUpdate();
     },
 

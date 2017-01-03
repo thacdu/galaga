@@ -32,9 +32,6 @@ var OneHitEnemy = cc.Sprite.extend({
         }
 
         if (this.state === STATE_FLYING) {
-            this.setRotation(angle);
-            this.oldPos = newPos;
-
             this.shotTimer += dt;
             if (this.shotTimer >= this.timeToShot) {
                 this.shotTimer = 0;
