@@ -7,6 +7,8 @@ var GreenEnemy = cc.Sprite.extend({
     life: 0,
     pos: null,
     state: null,
+    shotTimer: 0,
+    timeToShot: 0,
 
     ctor: function (file) {
         this._super(file);
@@ -32,10 +34,18 @@ var GreenEnemy = cc.Sprite.extend({
                 enemyLayer.vec = -1;
             }
         }
+
+        if (this.state === STATE_FLYING) {
+            this.shotTimer += dt;
+            if (this.shotTimer >= this.timeToShot) {
+                this.shotTimer = 0;
+                this.timeToShot = Math.random()/2 + 0.5;
+                this.onFire();
+            }
+        }
     },
 
     onFire: function () {
-        this.fireFly();
         var bullet = new Missile(res.bullet_png);
         var p = enemyLayer.convertToWorldSpace(this.getPosition());
         bullet.setPosition(cc.p(p.x, p.y + this.getContentSize().height/2 * scaleFactor - 5));
@@ -45,6 +55,8 @@ var GreenEnemy = cc.Sprite.extend({
     },
 
     fireFly: function () {
+        this.shotTimer = 0;
+        this.timeToShot = Math.random()/2 + 0.5;
         this.state = STATE_FLYING;
 
         var array = [

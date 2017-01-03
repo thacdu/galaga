@@ -40,7 +40,7 @@ var EnemyLayer = cc.Layer.extend({
             var enemy = this.enemies[Math.floor(Math.random() * this.enemies.length)];
             if (enemy.state !== STATE_NORMAL)
                 continue;
-            enemy.onFire();
+            enemy.fireFly();
             return;
         }
     },

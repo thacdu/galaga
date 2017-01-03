@@ -3,6 +3,8 @@ var OneHitEnemy = cc.Sprite.extend({
     winSize: null,
     state: null,
     pos: null,
+    shotTimer: 0,
+    timeToShot: 0,
 
     ctor: function (file) {
         this._super(file);
@@ -28,10 +30,21 @@ var OneHitEnemy = cc.Sprite.extend({
                 enemyLayer.vec = -1;
             }
         }
+
+        if (this.state === STATE_FLYING) {
+            this.setRotation(angle);
+            this.oldPos = newPos;
+
+            this.shotTimer += dt;
+            if (this.shotTimer >= this.timeToShot) {
+                this.shotTimer = 0;
+                this.timeToShot = Math.random()/2 + 0.5;
+                this.onFire();
+            }
+        }
     },
 
     onFire: function () {
-        this.fireFly();
         var bullet = new Missile(res.bullet_png);
         var p = enemyLayer.convertToWorldSpace(this.getPosition());
         bullet.setPosition(cc.p(p.x, p.y + this.getContentSize().height/2 * scaleFactor - 5));
@@ -53,6 +66,8 @@ var OneHitEnemy = cc.Sprite.extend({
     },
 
     fireFly: function () {
+        this.shotTimer = 0;
+        this.timeToShot = Math.random()/2 + 0.5;
         this.state = STATE_FLYING;
 
          var array = [
